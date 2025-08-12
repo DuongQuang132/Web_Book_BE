@@ -1,6 +1,59 @@
 @Web_Book_BE_HostAddress = http://localhost:5000
 
-GET {{Web_Book_BE_HostAddress}}/weatherforecast/
+### Test GET all products
+GET {{Web_Book_BE_HostAddress}}/api/Product
 Accept: application/json
+
+###
+
+### Test POST create product with file upload
+POST {{Web_Book_BE_HostAddress}}/api/Product/create
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="ProductName"
+
+Harry Potter and the Philosopher's Stone
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="AuthorName"
+
+J.K. Rowling
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="CategoriesName"
+
+Fantasy
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Price"
+
+29.99
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Discount"
+
+10%
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Description"
+
+A magical adventure story about a young wizard discovering his true identity
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="Quantity"
+
+50
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Test POST create product with image URL
+POST {{Web_Book_BE_HostAddress}}/api/Product/create
+Content-Type: application/x-www-form-urlencoded
+
+ProductName=The Lord of the Rings&AuthorName=J.R.R. Tolkien&CategoriesName=Fantasy&Price=39.99&Discount=15%&Description=Epic fantasy novel about the quest to destroy a powerful ring&Quantity=30&ImageUrl=https://example.com/book-cover.jpg
+
+###
+
+### Test POST create product without image
+POST {{Web_Book_BE_HostAddress}}/api/Product/create
+Content-Type: application/x-www-form-urlencoded
+
+ProductName=Test Book&AuthorName=Test Author&CategoriesName=Test Category&Price=25.00&Discount=5%&Description=This is a test book&Quantity=10
 
 ###
