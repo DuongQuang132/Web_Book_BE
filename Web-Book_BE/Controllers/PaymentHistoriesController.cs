@@ -1,101 +1,48 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web_Book_BE.DTO;
-using Web_Book_BE.Models;
-using Web_Book_BE.Utils;
+using Web_Book_BE.Services.Interfaces;
 
-namespace Web_Book_BE.Controllers
+public class PaymentHistoryController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class PaymentHistoryController : ControllerBase
+    private readonly IPaymentHistoryService _paymentHistoryService;
+
+    public PaymentHistoryController(IPaymentHistoryService paymentHistoryService)
     {
-        private readonly BookStoreDbContext _context;
+        _paymentHistoryService = paymentHistoryService;
+    }
 
-        public PaymentHistoryController(BookStoreDbContext context)
+    [HttpPost]
+    public IActionResult CreatePaymentHistory([FromBody] PaymentHistoryCreateDTO dto)
+    {
+        try
         {
-            _context = context;
+            var result = _paymentHistoryService.CreatePaymentHistory(dto);
+            return Ok(result);
         }
-
-        //Tạo bản ghi lịch sử thanh toán
-        [HttpPost]
-        public IActionResult CreatePaymentHistory([FromBody] PaymentHistoryCreateDTO dto)
+        catch (ArgumentException ex)
         {
-            if (string.IsNullOrEmpty(dto.PaymentId))
-                return BadRequest("PaymentId là bắt buộc");
-
-            var history = new PaymentHistory
-            {
-                PaymentHistoryId = "PHIS" + IdGenerator.RandomDigits(),
-                PaymentId = dto.PaymentId,
-                PaymentDate = dto.PaymentDate ?? DateTime.UtcNow,
-                Amount = dto.Amount
-            };
-
-            _context.PaymentHistories.Add(history);
-            _context.SaveChanges();
-
-            return Ok("Lịch sử thanh toán đã được tạo");
+            return BadRequest(ex.Message);
         }
+    }
 
-        //Lấy lịch sử theo PaymentId
-        [HttpGet("payment/{paymentId}")]
-        public IActionResult GetHistoryByPayment(string paymentId)
-        {
-            var histories = _context.PaymentHistories
-                .Where(h => h.PaymentId == paymentId)
-                .Select(h => new PaymentHistoryResponseDTO
-                {
-                    PaymentHistoryId = h.PaymentHistoryId,
-                    PaymentId = h.PaymentId ?? "",
-                    PaymentDate = h.PaymentDate,
-                    Amount = h.Amount ?? 0
-                })
-                .ToList();
+    [HttpGet("payment/{paymentId}")]
+    public IActionResult GetHistoryByPayment(string paymentId)
+    {
+        var histories = _paymentHistoryService.GetHistoryByPayment(paymentId);
+        return Ok(histories);
+    }
 
-            return Ok(histories);
-        }
+    [HttpPost("filter")]
+    public IActionResult FilterHistoryByDate([FromBody] PaymentHistoryFilterDTO dto)
+    {
+        var histories = _paymentHistoryService.FilterHistoryByDate(dto);
+        return Ok(histories);
+    }
 
-        //Lọc lịch sử theo khoảng thời gian
-        [HttpPost("filter")]
-        public IActionResult FilterHistoryByDate([FromBody] PaymentHistoryFilterDTO dto)
-        {
-            var query = _context.PaymentHistories.AsQueryable();
-
-            if (dto.FromDate.HasValue)
-                query = query.Where(h => h.PaymentDate >= dto.FromDate.Value);
-
-            if (dto.ToDate.HasValue)
-                query = query.Where(h => h.PaymentDate <= dto.ToDate.Value);
-
-            var histories = query
-                .Select(h => new PaymentHistoryResponseDTO
-                {
-                    PaymentHistoryId = h.PaymentHistoryId,
-                    PaymentId = h.PaymentId ?? "",
-                    PaymentDate = h.PaymentDate,
-                    Amount = h.Amount ?? 0
-                })
-                .ToList();
-
-            return Ok(histories);
-        }
-
-        //Lấy tất cả lịch sử thanh toán
-        [HttpGet]
-        public IActionResult GetAllPaymentHistories()
-        {
-            var histories = _context.PaymentHistories
-                .Select(h => new PaymentHistoryResponseDTO
-                {
-                    PaymentHistoryId = h.PaymentHistoryId,
-                    PaymentId = h.PaymentId ?? "",
-                    PaymentDate = h.PaymentDate,
-                    Amount = h.Amount ?? 0
-                })
-                .ToList();
-
-            return Ok(histories);
-        }
+    [HttpGet]
+    public IActionResult GetAllPaymentHistories()
+    {
+        var histories = _paymentHistoryService.GetAllPaymentHistories();
+        return Ok(histories);
     }
 }

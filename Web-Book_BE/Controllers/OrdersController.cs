@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web_Book_BE.DTO;
-using Web_Book_BE.Models;
-using Web_Book_BE.Utils;
+using Web_Book_BE.Services.Interfaces;
 
 namespace Web_Book_BE.Controllers
 {
@@ -10,151 +8,112 @@ namespace Web_Book_BE.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly BookStoreDbContext _context;
+        private readonly IOrderService _service;
 
-        public OrdersController(BookStoreDbContext context)
+        public OrdersController(IOrderService service)
         {
-            _context = context;
+            _service = service;
         }
 
-        // ✅ Tạo đơn hàng mới
         [HttpPost]
         public IActionResult CreateOrder([FromBody] OrderCreateDTO dto)
         {
-            if (string.IsNullOrEmpty(dto.UserId) || dto.TotalAmount == null)
+            if (string.IsNullOrWhiteSpace(dto.UserId) || dto.TotalAmount == null)
                 return BadRequest("UserId và tổng tiền là bắt buộc");
 
-            var order = new Orders
+            try
             {
-                OrdersId = "ORD" + IdGenerator.RandomDigits(),
-                UserId = dto.UserId,
-                TotalAmount = dto.TotalAmount,
-                Status = dto.Status ?? "Pending",
-                ShippingAddress = dto.ShippingAddress,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.Orders.Add(order);
-            _context.SaveChanges();
-
-            return Ok("Đơn hàng đã được tạo thành công");
+                var orderId = _service.CreateOrder(dto);
+                return Ok(new { Message = "Đơn hàng đã được tạo thành công", OrderId = orderId });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        //Cập nhật đơn hàng
         [HttpPut]
         public IActionResult UpdateOrder([FromBody] OrderUpdateDTO dto)
         {
-            var order = _context.Orders.FirstOrDefault(o => o.OrdersId == dto.OrdersId);
-            if (order == null)
-                return NotFound("Không tìm thấy đơn hàng");
+            if (string.IsNullOrWhiteSpace(dto.OrdersId))
+                return BadRequest("OrdersId là bắt buộc");
 
-            order.TotalAmount = dto.TotalAmount;
-            order.Status = dto.Status;
-            order.ShippingAddress = dto.ShippingAddress;
-            order.UpdatedAt = DateTime.UtcNow;
-
-            _context.SaveChanges();
-            return Ok("Đơn hàng đã được cập nhật");
+            try
+            {
+                _service.UpdateOrder(dto);
+                return Ok("Đơn hàng đã được cập nhật");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        //Cập nhật trạng thái đơn hàng riêng biệt
         [HttpPatch("status")]
         public IActionResult UpdateOrderStatus([FromBody] OrderStatusUpdateDTO dto)
         {
-            var order = _context.Orders.FirstOrDefault(o => o.OrdersId == dto.OrdersId);
-            if (order == null)
-                return NotFound("Không tìm thấy đơn hàng");
+            if (string.IsNullOrWhiteSpace(dto.OrdersId))
+                return BadRequest("OrdersId là bắt buộc");
 
-            order.Status = dto.Status;
-            order.UpdatedAt = DateTime.UtcNow;
-
-            _context.SaveChanges();
-            return Ok("Trạng thái đơn hàng đã được cập nhật");
+            try
+            {
+                _service.UpdateOrderStatus(dto);
+                return Ok("Trạng thái đơn hàng đã được cập nhật");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        //Xóa đơn hàng
         [HttpDelete("{id}")]
         public IActionResult DeleteOrder(string id)
         {
-            var order = _context.Orders.FirstOrDefault(o => o.OrdersId == id);
-            if (order == null)
-                return NotFound("Không tìm thấy đơn hàng để xóa");
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest("OrdersId là bắt buộc");
 
-            _context.Orders.Remove(order);
-            _context.SaveChanges();
-
-            return Ok("Đơn hàng đã được xóa");
+            try
+            {
+                _service.DeleteOrder(id);
+                return Ok("Đơn hàng đã được xóa");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        //Lấy đơn hàng theo ID
         [HttpGet("{id}")]
         public IActionResult GetOrderById(string id)
         {
-            var order = _context.Orders
-                .Include(o => o.User)
-                .FirstOrDefault(o => o.OrdersId == id);
+            if (string.IsNullOrWhiteSpace(id))
+                return BadRequest("OrdersId là bắt buộc");
 
-            if (order == null)
-                return NotFound("Không tìm thấy đơn hàng");
-
-            var response = new OrderResponseDTO
+            try
             {
-                OrdersId = order.OrdersId,
-                UserId = order.UserId,
-                Username = order.User?.Username,
-                TotalAmount = order.TotalAmount,
-                Status = order.Status,
-                ShippingAddress = order.ShippingAddress,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt
-            };
-
-            return Ok(response);
+                var order = _service.GetOrderById(id);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        //Lấy đơn hàng theo UserId
         [HttpGet("user/{userId}")]
         public IActionResult GetOrdersByUser(string userId)
         {
-            var orders = _context.Orders
-                .Include(o => o.User)
-                .Where(o => o.UserId == userId)
-                .Select(order => new OrderResponseDTO
-                {
-                    OrdersId = order.OrdersId,
-                    UserId = order.UserId,
-                    Username = order.User.Username,
-                    TotalAmount = order.TotalAmount,
-                    Status = order.Status,
-                    ShippingAddress = order.ShippingAddress,
-                    CreatedAt = order.CreatedAt,
-                    UpdatedAt = order.UpdatedAt
-                })
-                .ToList();
+            if (string.IsNullOrWhiteSpace(userId))
+                return BadRequest("UserId là bắt buộc");
 
+            var orders = _service.GetOrdersByUser(userId);
             return Ok(orders);
         }
 
-        //Lấy tất cả đơn hàng
         [HttpGet]
         public IActionResult GetAllOrders()
         {
-            var orders = _context.Orders
-                .Include(o => o.User)
-                .Select(order => new OrderResponseDTO
-                {
-                    OrdersId = order.OrdersId,
-                    UserId = order.UserId,
-                    Username = order.User.Username,
-                    TotalAmount = order.TotalAmount,
-                    Status = order.Status,
-                    ShippingAddress = order.ShippingAddress,
-                    CreatedAt = order.CreatedAt,
-                    UpdatedAt = order.UpdatedAt
-                })
-                .ToList();
-
+            var orders = _service.GetAllOrders();
             return Ok(orders);
         }
     }
