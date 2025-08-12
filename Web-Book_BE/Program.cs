@@ -1,7 +1,10 @@
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Web_Book_BE.Models;
 using Web_Book_BE.Services;
 using Web_Book_BE.Services.Interfaces;
+using Web_Book_BE.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BookStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddSingleton(provider =>
+{
+    var settings = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+    var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
+    return new Cloudinary(account);
+});
+builder.Services.AddSingleton<CloudinaryUtil>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAuthorService, AuthorsService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
 builder.Services.AddScoped<ICategoryService,  CategoryService>();
@@ -30,6 +44,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Phục vụ static files từ thư mục www
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

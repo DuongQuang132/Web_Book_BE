@@ -8,7 +8,7 @@ namespace Web_Book_BE.Services.Interfaces
         Task<string> CreateCategoryAsync(CategoryCreateDTO dto);
         Task<string> UpdateCategoryAsync(CategoryUpdateDTO dto);
         Task<string> DeleteCategoryAsync(string id);
-        Task<CategoryResponseDTO?> GetCategoryByIdAsync(string id);
+        Task<CategoryResponseDTO?> GetCategoryByNameAsync(string id);
         Task<List<CategoryResponseDTO>> GetAllCategoriesAsync();
     }
 }

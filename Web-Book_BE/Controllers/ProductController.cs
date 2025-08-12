@@ -17,31 +17,46 @@ namespace Web_Book_BE.Controllers
             _productService = productService;
         }
 
-        //Tạo sản phẩm
-        [HttpPost]
-        public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDTO dto)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateProduct([FromForm] ProductCreateDTO dto)
         {
-            var productId = await _productService.CreateProductAsync(dto);
+            try
+            {
+                var result = await _productService.CreateProductAsync(dto);
 
-            if (string.IsNullOrEmpty(productId))
-                return StatusCode(500, "Tạo sản phẩm thất bại");
+                if (result == "Tạo sản phẩm không thành công")
+                    return StatusCode(500, result);
 
-            return Ok(new { Message = "Tạo sản phẩm thành công", ProductId = productId });
+                return Ok(new { Message = "Tạo sản phẩm thành công", ProductId = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi: {ex.Message}");
+            }
         }
 
-        //Cập nhật sản phẩm
-        [HttpPut]
-        public async Task<IActionResult> UpdateProduct([FromBody] ProductUpdateDTO dto)
+        [HttpPut("update-product")]
+        public async Task<IActionResult> UpdateProduct([FromForm] ProductUpdateDTO dto)
         {
-            var message = await _productService.UpdateProductAsync(dto);
+            try
+            {
+                var result = await _productService.UpdateProductAsync(dto, dto.Image);
+                if (string.IsNullOrEmpty(result))
+                    return BadRequest("Cập nhật sản phẩm thất bại");
 
-            if (message == "Không tìm thấy sản phẩm")
-                return NotFound(message);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi: {ex.Message}");
+            }
+        }
 
-            if (message == "Cập nhật thất bại")
-                return StatusCode(500, message);
-
-            return Ok(message);
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteProduct([FromBody] ProductDeleteDTO dto)
+        {
+            var result = await _productService.IDeleteProductAsync(dto);
+            return Ok(new { Message = result });
         }
 
         //Xóa mềm sản phẩm
@@ -70,6 +85,14 @@ namespace Web_Book_BE.Controllers
                 : NotFound("Không tìm thấy sản phẩm");
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> GetProductsByName([FromQuery] string keyword)
+        {
+            var products = await _productService.GetProductsByNameAsync(keyword);
+            return Ok(products);
+        }
+
+
         //Lấy tất cả sản phẩm
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
@@ -78,7 +101,7 @@ namespace Web_Book_BE.Controllers
             return Ok(products);
         }
 
-        // ✅ Tìm kiếm và lọc sản phẩm
+        //Tìm kiếm và lọc sản phẩm
         [HttpPost("filter")]
         public async Task<IActionResult> FilterProducts([FromBody] ProductFilterDTO dto)
         {

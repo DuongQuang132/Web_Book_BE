@@ -51,11 +51,11 @@ namespace Web_Book_BE.Controllers
                 : NotFound(message);
         }
 
-        //Lấy danh mục theo ID
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById(string id)
+        //Lấy danh mục theo tên
+        [HttpGet("CategoryName")]
+        public async Task<IActionResult> GetCategoryByName([FromQuery] string name)
         {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
+            var category = await _categoryService.GetCategoryByNameAsync(name);
 
             return category != null
                 ? Ok(category)

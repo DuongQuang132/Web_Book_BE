@@ -57,10 +57,10 @@ public class CategoryService : ICategoryService
 
         return "Danh mục đã được xóa";
     }
-    public async Task<CategoryResponseDTO?> GetCategoryByIdAsync(string id)
+    public async Task<CategoryResponseDTO?> GetCategoryByNameAsync(string name)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.CategoriesId == id);
+            .FirstOrDefaultAsync(c => c.CategoriesName.ToLower() == name.ToLower());
 
         if (category == null)
             return null;
