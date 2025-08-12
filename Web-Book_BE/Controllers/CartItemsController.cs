@@ -12,87 +12,44 @@ namespace Web_Book_BE.Controllers
     [Route("api/[controller]")]
     public class CartItemController : ControllerBase
     {
-        private readonly BookStoreDbContext _context;
         private readonly ICartItemService _cartItemService;
        public CartItemController(ICartItemService cartItemService)
         {
             _cartItemService = cartItemService;
         }
-        public CartItemController(BookStoreDbContext context)
-        {
-            _context = context;
-        }
-        
-        //Lấy giỏ hàng theo UserId
-        [HttpPost("by-user")]
+
+        [HttpPost("get-by-user")]
         public async Task<IActionResult> GetCartByUser([FromBody] CartItemByUserDTO dto)
         {
-            var items = await _cartItemService.GetCartByUser(dto);
-            return Ok(items);
+            var cart = await _cartItemService.GetCartByUserAsync(dto.UserId);
+            return Ok(cart);
         }
 
-        //Thêm sản phẩm vào giỏ
-        [HttpPost]
-        public IActionResult AddToCart([FromBody] CartItemCreateDTO dto)
+        [HttpPost("add")]
+        public async Task<IActionResult> AddToCart([FromBody] CartItemCreateDTO dto)
         {
-            if (string.IsNullOrEmpty(dto.UserId) || string.IsNullOrEmpty(dto.ProductId) || dto.Quantity <= 0)
-                return BadRequest("Thông tin không hợp lệ");
-
-            var existingItem = _context.CartItems
-                .FirstOrDefault(c => c.UserId == dto.UserId && c.ProductId == dto.ProductId);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity = (existingItem.Quantity ?? 0) + dto.Quantity;
-            }
-            else
-            {
-                var newItem = new CartItems
-                {
-                    CartItemId = "CI" + IdGenerator.RandomDigits(),
-                    UserId = dto.UserId,
-                    ProductId = dto.ProductId,
-                    Quantity = dto.Quantity
-                };
-                _context.CartItems.Add(newItem);
-            }
-
-            _context.SaveChanges();
-            return Ok("Đã thêm sản phẩm vào giỏ hàng");
+            bool success = await _cartItemService.AddToCartAsync(dto);
+            return success ? Ok("Đã thêm sản phẩm vào giỏ hàng") : BadRequest("Thông tin không hợp lệ");
         }
 
-        //Cập nhật số lượng sản phẩm
-        [HttpPut]
-        public IActionResult UpdateCartItem([FromBody] CartItemUpdateDTO dto)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateCartItem([FromBody] CartItemUpdateDTO dto)
         {
-            if (string.IsNullOrEmpty(dto.CartItemId) || dto.Quantity <= 0)
-                return BadRequest("Thông tin không hợp lệ");
+            var message = await _cartItemService.UpdateCartItemAsync(dto);
 
-            var item = _context.CartItems.FirstOrDefault(c => c.CartItemId == dto.CartItemId);
-            if (item == null)
-                return NotFound("Không tìm thấy sản phẩm trong giỏ");
-
-            item.Quantity = dto.Quantity;
-            _context.SaveChanges();
-
-            return Ok("Đã cập nhật số lượng sản phẩm");
+            return message == "Đã cập nhật số lượng sản phẩm"
+                ? Ok(message)
+                : BadRequest(message);
         }
 
-        //Xóa sản phẩm khỏi giỏ
-        [HttpDelete]
-        public IActionResult RemoveFromCart([FromBody] CartItemDeleteDTO dto)
+        [HttpDelete("remove")]
+        public async Task<IActionResult> RemoveFromCart([FromBody] CartItemDeleteDTO dto)
         {
-            if (string.IsNullOrEmpty(dto.CartItemId))
-                return BadRequest("Thông tin không hợp lệ");
+            var message = await _cartItemService.RemoveFromCartAsync(dto);
 
-            var item = _context.CartItems.FirstOrDefault(c => c.CartItemId == dto.CartItemId);
-            if (item == null)
-                return NotFound("Không tìm thấy sản phẩm để xóa");
-
-            _context.CartItems.Remove(item);
-            _context.SaveChanges();
-
-            return Ok("Đã xóa sản phẩm khỏi giỏ hàng");
+            return message == "Đã xóa sản phẩm khỏi giỏ hàng"
+                ? Ok(message)
+                : BadRequest(message);
         }
     }
 }

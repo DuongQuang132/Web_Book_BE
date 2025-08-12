@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Web_Book_BE.DTO;
 using Web_Book_BE.Models;
 using Web_Book_BE.Services.Interfaces;
@@ -14,7 +15,7 @@ namespace Web_Book_BE.Services
         {
             _context = context;
         }
-        public async  Task<string> CreateAuthor(AuthorCreateDTO dto)
+        public async Task<string> CreateAuthorAsync(AuthorCreateDTO dto)
         {
             var author = new Authors
             {
@@ -31,19 +32,53 @@ namespace Web_Book_BE.Services
             return "Author created successfully";
         }
 
-        public Task<List<AuthorResponseDTO>> GetAllAuthors()
+        public async Task<List<AuthorResponseDTO>> GetAllAuthorsAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Authors
+                .Select(a => new AuthorResponseDTO
+                {
+                    AuthorId = a.AuthorId,
+                    AuthorName = a.AuthorName,
+                    Bio = a.Bio,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt
+                })
+                .ToListAsync();
         }
-
-        public Task<AuthorResponseDTO> GetAuthorById(string id)
+        public async Task<IActionResult> GetAuthorByIdAsync(string id)
         {
-            throw new NotImplementedException();
+            var author = await _context.Authors.FindAsync(id);
+            if (author == null)
+                return new NotFoundResult();
+
+            var dto = new AuthorResponseDTO
+            {
+                AuthorId = author.AuthorId,
+                AuthorName = author.AuthorName,
+                Bio = author.Bio,
+                CreatedAt = author.CreatedAt,
+                UpdatedAt = author.UpdatedAt
+            };
+
+            return new OkObjectResult(dto);
         }
-
-        public Task<string> UpdateAuthor(AuthorUpdateDTO dto)
+        public async Task<IActionResult> UpdateAuthorAsync(AuthorUpdateDTO dto)
         {
-            throw new NotImplementedException();
+            var author = await _context.Authors
+                .FirstOrDefaultAsync(a => a.AuthorId == dto.AuthorId);
+
+            if (author == null)
+            {
+                return new NotFoundObjectResult("Không tìm thấy tác giả");
+            }
+
+            author.AuthorName = dto.AuthorName;
+            author.Bio = dto.Bio;
+            author.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return new OkObjectResult("Cập nhật tác giả thành công");
         }
     }
 }

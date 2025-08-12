@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Web_Book_BE.DTO;
 using Web_Book_BE.Models;
+using Web_Book_BE.Services.Interfaces;
 using Web_Book_BE.Utils;
 
 namespace Web_Book_BE.Controllers
@@ -9,135 +10,81 @@ namespace Web_Book_BE.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly BookStoreDbContext _context;
-
-        public UserController(BookStoreDbContext context)
+        private readonly IUserService _userService;
+        public UserController (IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
-
         //Đăng ký tài khoản
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserRegisterDTO dto)
+        public async Task<IActionResult> CreateUser([FromBody] UserRegisterDTO dto)
         {
-            if (_context.Users.Any(u => u.Username == dto.Username))
-                return BadRequest("Tên đăng nhập đã tồn tại");
+            var message = await _userService.CreateUserAsync(dto);
 
-            var user = new User
-            {
-                UserId = "USR" + IdGenerator.RandomDigits(),
-                Username = dto.Username,
-                Password = dto.Password, // Có thể mã hóa nếu cần
-                Role = dto.Role,
-                CustomerId = dto.CustomerId,
-                IsDeleted = false,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            return Ok("Đăng ký thành công");
+            return message == "Đăng ký thành công"
+                ? Ok(message)
+                : BadRequest(message);
         }
 
         //Đăng nhập
         [HttpPost("login")]
-        public IActionResult Login([FromBody] UserLoginDTO dto)
+        public async Task<IActionResult> Login([FromBody] UserLoginDTO dto)
         {
-            var user = _context.Users
-                .FirstOrDefault(u => u.Username == dto.Username && u.Password == dto.Password && u.IsDeleted != true);
+            var response = await _userService.LoginAsync(dto);
 
-            if (user == null)
-                return Unauthorized("Sai tên đăng nhập hoặc mật khẩu");
-
-            var response = new UserResponseDTO
-            {
-                UserId = user.UserId,
-                Username = user.Username,
-                Role = user.Role ?? "",
-                CustomerId = user.CustomerId ?? "",
-                IsDeleted = user.IsDeleted,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
-            };
-
-            return Ok(response);
+            return response != null
+                ? Ok(response)
+                : Unauthorized("Sai tên đăng nhập hoặc mật khẩu");
         }
 
-        //Cập nhật thông tin người dùng
         [HttpPut("update")]
-        public IActionResult UpdateUser([FromBody] UserUpdateDTO dto)
+        public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDTO dto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.UserId == dto.UserId);
-            if (user == null)
-                return NotFound("Không tìm thấy người dùng");
+            var message = await _userService.UpdateUserAsync(dto);
 
-            user.Username = dto.Username;
-            user.Password = dto.Password;
-            user.Role = dto.Role;
-            user.CustomerId = dto.CustomerId;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            _context.SaveChanges();
-            return Ok("Cập nhật thành công");
+            return message switch
+            {
+                "Cập nhật thành công" => Ok(message),
+                "Tên đăng nhập đã tồn tại" => BadRequest(message),
+                "Không tìm thấy người dùng" => NotFound(message),
+                _ => StatusCode(500, message)
+            };
         }
 
         //Lấy thông tin người dùng theo ID
         [HttpGet("{id}")]
-        public IActionResult GetUserById(string id)
+        public async Task<IActionResult> GetUserById(string id)
         {
-            var user = _context.Users.FirstOrDefault(u => u.UserId == id && u.IsDeleted != true);
-            if (user == null)
+            var userDto = await _userService.GetUserByIdAsync(id);
+
+            if (userDto == null)
                 return NotFound("Không tìm thấy người dùng");
 
-            var response = new UserResponseDTO
-            {
-                UserId = user.UserId,
-                Username = user.Username,
-                Role = user.Role ?? "",
-                CustomerId = user.CustomerId ?? "",
-                IsDeleted = user.IsDeleted,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
-            };
-
-            return Ok(response);
+            return Ok(userDto);
         }
 
         //Lấy tất cả người dùng
         [HttpGet("all")]
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
-            var users = _context.Users
-                .Where(u => u.IsDeleted != true)
-                .Select(user => new UserResponseDTO
-                {
-                    UserId = user.UserId,
-                    Username = user.Username,
-                    Role = user.Role ?? "",
-                    CustomerId = user.CustomerId ?? "",
-                    IsDeleted = user.IsDeleted,
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt
-                })
-                .ToList();
-
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
+
         //Xóa mềm người dùng
         [HttpPut("delete")]
-        public IActionResult SoftDeleteUser([FromBody] UserDeleteDTO dto)
+        public async Task<IActionResult> IDeleteUser([FromBody] UserDeleteDTO dto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.UserId == dto.UserId);
-            if (user == null)
-                return NotFound("Không tìm thấy người dùng");
+            var message = await _userService.IDeleteUserAsync(dto);
 
-            user.IsDeleted = true;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            _context.SaveChanges();
-            return Ok("Người dùng đã được xóa mềm");
+            return message switch
+            {
+                "Người dùng đã được xóa mềm" => Ok(message),
+                "Không tìm thấy người dùng" => NotFound(message),
+                _ => StatusCode(500, message)
+            };
         }
+
     }
 }

@@ -6,7 +6,10 @@ namespace Web_Book_BE.Services.Interfaces
 {
     public interface ICartItemService
     {
-        Task<List<CartItemResponseDTO>> GetCartByUser(CartItemByUserDTO dto);
-       
+        Task<List<CartItemResponseDTO>> GetCartByUserAsync(string userId);
+        Task<bool> AddToCartAsync(CartItemCreateDTO dto);
+        Task<string> UpdateCartItemAsync(CartItemUpdateDTO dto);
+        Task<string> RemoveFromCartAsync(CartItemDeleteDTO dto);
+
     }
 }
