@@ -1,131 +1,83 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web_Book_BE.DTO;
-using Web_Book_BE.Models;
-using Web_Book_BE.Utils;
+using Web_Book_BE.Services.Interfaces;
 
-namespace Web_Book_BE.Controllers
+public class PaymentsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class PaymentsController : ControllerBase
+    private readonly IPaymentService _paymentService;
+
+    public PaymentsController(IPaymentService paymentService)
     {
-        private readonly BookStoreDbContext _context;
+        _paymentService = paymentService;
+    }
 
-        public PaymentsController(BookStoreDbContext context)
+    [HttpPost]
+    public IActionResult CreatePayment([FromBody] PaymentCreateDTO dto)
+    {
+        try
         {
-            _context = context;
+            var result = _paymentService.CreatePayment(dto);
+            return Ok(result);
         }
-
-        //Tạo thông tin thanh toán
-        [HttpPost]
-        public IActionResult CreatePayment([FromBody] PaymentCreateDTO dto)
+        catch (ArgumentException ex)
         {
-            if (string.IsNullOrEmpty(dto.OrdersId) || string.IsNullOrEmpty(dto.PaymentMethod))
-                return BadRequest("OrdersId và phương thức thanh toán là bắt buộc");
-
-            var payment = new Payment
-            {
-                PaymentId = "PAY" + IdGenerator.RandomDigits(),
-                OrdersId = dto.OrdersId,
-                PaymentMethod = dto.PaymentMethod,
-                PaymentDate = dto.PaymentDate ?? DateTime.UtcNow,
-                AmountPaid = dto.AmountPaid,
-                Status = dto.Status ?? "Pending",
-                Noted = dto.Noted
-            };
-
-            _context.Payments.Add(payment);
-            _context.SaveChanges();
-
-            return Ok("Thông tin thanh toán đã được tạo");
+            return BadRequest(ex.Message);
         }
+    }
 
-        //Cập nhật thông tin thanh toán
-        [HttpPut]
-        public IActionResult UpdatePayment([FromBody] PaymentUpdateDTO dto)
+    [HttpPut]
+    public IActionResult UpdatePayment([FromBody] PaymentUpdateDTO dto)
+    {
+        try
         {
-            var payment = _context.Payments.FirstOrDefault(p => p.PaymentId == dto.PaymentId);
-            if (payment == null)
-                return NotFound("Không tìm thấy thông tin thanh toán");
-
-            payment.PaymentMethod = dto.PaymentMethod;
-            payment.PaymentDate = dto.PaymentDate ?? payment.PaymentDate;
-            payment.AmountPaid = dto.AmountPaid;
-            payment.Status = dto.Status;
-            payment.Noted = dto.Noted;
-
-            _context.SaveChanges();
-            return Ok("Thông tin thanh toán đã được cập nhật");
+            var result = _paymentService.UpdatePayment(dto);
+            return Ok(result);
         }
-
-        //Cập nhật trạng thái thanh toán riêng biệt
-        [HttpPatch("status")]
-        public IActionResult UpdatePaymentStatus([FromBody] PaymentStatusUpdateDTO dto)
+        catch (KeyNotFoundException ex)
         {
-            var payment = _context.Payments.FirstOrDefault(p => p.PaymentId == dto.PaymentId);
-            if (payment == null)
-                return NotFound("Không tìm thấy thông tin thanh toán");
-
-            payment.Status = dto.Status;
-            _context.SaveChanges();
-
-            return Ok("Trạng thái thanh toán đã được cập nhật");
+            return NotFound(ex.Message);
         }
+    }
 
-        //Xóa thanh toán
-        [HttpDelete("{id}")]
-        public IActionResult DeletePayment(string id)
+    [HttpPatch("status")]
+    public IActionResult UpdatePaymentStatus([FromBody] PaymentStatusUpdateDTO dto)
+    {
+        try
         {
-            var payment = _context.Payments.FirstOrDefault(p => p.PaymentId == id);
-            if (payment == null)
-                return NotFound("Không tìm thấy thông tin thanh toán để xóa");
-
-            _context.Payments.Remove(payment);
-            _context.SaveChanges();
-
-            return Ok("Thông tin thanh toán đã được xóa");
+            var result = _paymentService.UpdatePaymentStatus(dto);
+            return Ok(result);
         }
-
-        //Lấy thanh toán theo OrdersId
-        [HttpGet("order/{ordersId}")]
-        public IActionResult GetPaymentsByOrder(string ordersId)
+        catch (KeyNotFoundException ex)
         {
-            var payments = _context.Payments
-                .Where(p => p.OrdersId == ordersId)
-                .Select(p => new PaymentResponseDTO
-                {
-                    PaymentId = p.PaymentId,
-                    OrdersId = p.OrdersId ?? "",
-                    PaymentMethod = p.PaymentMethod ?? "",
-                    PaymentDate = p.PaymentDate,
-                    AmountPaid = p.AmountPaid,
-                    Status = p.Status ?? "",
-                    Noted = p.Noted ?? ""
-                })
-                .ToList();
-
-            return Ok(payments);
+            return NotFound(ex.Message);
         }
+    }
 
-        //Lấy tất cả thanh toán
-        [HttpGet]
-        public IActionResult GetAllPayments()
+    [HttpDelete("{id}")]
+    public IActionResult DeletePayment(string id)
+    {
+        try
         {
-            var payments = _context.Payments
-                .Select(p => new PaymentResponseDTO
-                {
-                    PaymentId = p.PaymentId,
-                    OrdersId = p.OrdersId ?? "",
-                    PaymentMethod = p.PaymentMethod ?? "",
-                    PaymentDate = p.PaymentDate,
-                    AmountPaid = p.AmountPaid,
-                    Status = p.Status ?? "",
-                    Noted = p.Noted ?? ""
-                })
-                .ToList();
-
-            return Ok(payments);
+            var result = _paymentService.DeletePayment(id);
+            return Ok(result);
         }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    [HttpGet("order/{ordersId}")]
+    public IActionResult GetPaymentsByOrder(string ordersId)
+    {
+        var payments = _paymentService.GetPaymentsByOrder(ordersId);
+        return Ok(payments);
+    }
+
+    [HttpGet]
+    public IActionResult GetAllPayments()
+    {
+        var payments = _paymentService.GetAllPayments();
+        return Ok(payments);
     }
 }

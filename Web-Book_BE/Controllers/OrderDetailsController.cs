@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿// Controllers/OrderDetailsController.cs
+using Microsoft.AspNetCore.Mvc;
 using Web_Book_BE.DTO;
-using Web_Book_BE.Models;
-using Web_Book_BE.Utils;
+using Web_Book_BE.Services.Interfaces;
 
 namespace Web_Book_BE.Controllers
 {
@@ -10,82 +9,55 @@ namespace Web_Book_BE.Controllers
     [Route("api/[controller]")]
     public class OrderDetailsController : ControllerBase
     {
-        private readonly BookStoreDbContext _context;
+        private readonly IOrderDetailsService _service;
 
-        public OrderDetailsController(BookStoreDbContext context)
+        public OrderDetailsController(IOrderDetailsService service)
         {
-            _context = context;
+            _service = service;
         }
 
-        //Thêm sản phẩm vào đơn hàng
+        // Thêm chi tiết đơn hàng
         [HttpPost]
         public IActionResult CreateOrderDetail([FromBody] OrderDetailCreateDTO dto)
         {
-            if (string.IsNullOrEmpty(dto.OrdersId) || string.IsNullOrEmpty(dto.ProductId))
-                return BadRequest("OrdersId và ProductId là bắt buộc");
-
-            var detail = new OrderDetails
+            try
             {
-                OrderDetailId = "ODT" + IdGenerator.RandomDigits(),
-                OrdersId = dto.OrdersId,
-                ProductId = dto.ProductId,
-                Quantity = dto.Quantity,
-                UnitPrice = dto.UnitPrice
-            };
-
-            _context.OrderDetails.Add(detail);
-            _context.SaveChanges();
-
-            return Ok("Chi tiết đơn hàng đã được thêm");
+                var id = _service.CreateOrderDetail(dto);
+                return Ok($"Chi tiết đơn hàng đã được thêm với ID: {id}");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        //Cập nhật chi tiết đơn hàng
+        // Cập nhật chi tiết đơn hàng
         [HttpPut]
         public IActionResult UpdateOrderDetail([FromBody] OrderDetailUpdateDTO dto)
         {
-            var detail = _context.OrderDetails.FirstOrDefault(d => d.OrderDetailId == dto.OrderDetailId);
-            if (detail == null)
+            var success = _service.UpdateOrderDetail(dto);
+            if (!success)
                 return NotFound("Không tìm thấy chi tiết đơn hàng");
 
-            detail.Quantity = dto.Quantity;
-            detail.UnitPrice = dto.UnitPrice;
-
-            _context.SaveChanges();
             return Ok("Chi tiết đơn hàng đã được cập nhật");
         }
 
-        //Xóa chi tiết đơn hàng
+        // Xóa chi tiết đơn hàng
         [HttpDelete("{id}")]
         public IActionResult DeleteOrderDetail(string id)
         {
-            var detail = _context.OrderDetails.FirstOrDefault(d => d.OrderDetailId == id);
-            if (detail == null)
+            var success = _service.DeleteOrderDetail(id);
+            if (!success)
                 return NotFound("Không tìm thấy chi tiết đơn hàng để xóa");
-
-            _context.OrderDetails.Remove(detail);
-            _context.SaveChanges();
 
             return Ok("Chi tiết đơn hàng đã được xóa");
         }
 
-        //Lấy chi tiết đơn hàng theo OrdersId
+        // Lấy danh sách chi tiết đơn hàng theo OrdersId
         [HttpGet("order/{ordersId}")]
         public IActionResult GetOrderDetailsByOrder(string ordersId)
         {
-            var details = _context.OrderDetails
-                .Where(d => d.OrdersId == ordersId)
-                .Select(d => new OrderDetailResponseDTO
-                {
-                    OrderDetailId = d.OrderDetailId,
-                    OrdersId = d.OrdersId ?? "",
-                    ProductId = d.ProductId ?? "",
-                    ProductName = "",
-                    Quantity = d.Quantity ?? 0,
-                    UnitPrice = d.UnitPrice ?? 0,
-                    TotalPrice = (d.Quantity ?? 0) * (d.UnitPrice ?? 0)
-                })
-                .ToList();
-
+            var details = _service.GetOrderDetailsByOrder(ordersId);
             return Ok(details);
         }
     }
