@@ -19,6 +19,36 @@ namespace Web_Book_BE.Services
             _imageService = imageService;
         }
 
+        public async Task<List<ProductResponseDTO>> GetProductByCategoryId(string categoryId)
+        {
+            var products = await _context.Categories
+                .Where(c => c.Categories_ID == categoryId)
+                .Include(c => c.Products)
+                .SelectMany(c => c.Products)
+                .Select(p => new ProductResponseDTO
+                {
+                    Product_Id = p.Product_Id,
+                    Name = p.Name,
+                    AuthorName = p.Author != null ? p.Author.AuthorName ?? "" : "",
+                    CategoriesName = p.Categories != null ? p.Categories.Name ?? "" : "",
+                    Price = p.Price,
+                    Discount = p.Discount ?? "",
+                    Description = p.Description ?? "",
+                    Quantity = p.Quantity,
+                    ImageUrl = p.ImageUrl ?? "",
+                    CreatedAt = p.CreatedAt,
+                  
+                })
+                .ToListAsync();
+
+            return products;
+        }
+
+
+
+
+
+
         public async Task<string> CreateProductAsync(ProductCreateDTO dto)
         {
             // Tìm AuthorId từ tên tác giả
@@ -29,7 +59,7 @@ namespace Web_Book_BE.Services
 
             // Tìm CategoryId từ tên category
             var category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.CategoriesName == dto.CategoriesName);
+                .FirstOrDefaultAsync(c => c.Name == dto.CategoriesName);
             if (category == null)
                 return "Tạo sản phẩm không thành công";
 
@@ -53,10 +83,10 @@ namespace Web_Book_BE.Services
 
             var product = new Product
             {
-                ProductId = productId,
-                ProductName = dto.ProductName,
+                Product_Id = productId,
+                Name = dto.ProductName,
                 AuthorId = author.AuthorId,
-                CategoriesId = category.CategoriesId,
+                CategoriesId = category.Categories_ID,
                 Price = dto.Price,
                 Discount = dto.Discount,
                 Description = dto.Description,
@@ -64,7 +94,7 @@ namespace Web_Book_BE.Services
                 ImageUrl = imageUrl,
                 IsDeleted = false,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+               
             };
 
             _context.Products.Add(product);
@@ -76,7 +106,7 @@ namespace Web_Book_BE.Services
         public async Task<string> UpdateProductAsync(ProductUpdateDTO dto, IFormFile imageFile)
         {
             var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.ProductId == dto.ProductId && p.IsDeleted == false);
+                .FirstOrDefaultAsync(p => p.Product_Id == dto.Product_Id && p.IsDeleted == false);
 
             if (product == null)
                 return "Sản phẩm không tồn tại!";
@@ -89,18 +119,18 @@ namespace Web_Book_BE.Services
 
             // Tìm CategoryId từ tên
             var category = await _context.Categories
-                .FirstOrDefaultAsync(c => c.CategoriesName == dto.CategoriesName);
+                .FirstOrDefaultAsync(c => c.Name == dto.CategoriesName);
             if (category == null)
                 return "Category không tồn tại!";
 
-            product.ProductName = dto.ProductName;
+            product.Name = dto.Name;
             product.AuthorId = author.AuthorId;
-            product.CategoriesId = category.CategoriesId;
+            product.CategoriesId = category.Categories_ID;
             product.Price = dto.Price;
             product.Discount = dto.Discount;
             product.Description = dto.Description;
             product.Quantity = dto.Quantity;
-            product.UpdatedAt = DateTime.UtcNow;
+           
 
             // Xử lý ảnh
             if (dto.Image != null && _imageService.IsValidImageFile(dto.Image))
@@ -127,13 +157,13 @@ namespace Web_Book_BE.Services
         public async Task<string> IDeleteProductAsync(ProductDeleteDTO dto)
         {
             var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.ProductId == dto.ProductId);
+                .FirstOrDefaultAsync(p => p.Product_Id == dto.ProductId);
 
             if (product == null)
                 return "Không tìm thấy sản phẩm";
 
             product.IsDeleted = true;
-            product.UpdatedAt = DateTime.UtcNow;
+          
 
             var result = await _context.SaveChangesAsync();
             return result > 0 ? "Sản phẩm đã được xóa mềm" : "Xóa mềm thất bại";
@@ -144,23 +174,23 @@ namespace Web_Book_BE.Services
             var product = await _context.Products
                 .Include(p => p.Author)
                 .Include(p => p.Categories)
-                .FirstOrDefaultAsync(p => p.ProductId == id && p.IsDeleted != true);
+                .FirstOrDefaultAsync(p => p.Product_Id == id && p.IsDeleted != true);
 
             if (product == null) return null;
 
             return new ProductResponseDTO
             {
-                ProductId = product.ProductId,
-                ProductName = product.ProductName ?? "",
+                Product_Id = product.Product_Id,
+                Name = product.Name ?? "",
                 AuthorName = product.Author?.AuthorName ?? "",
-                CategoriesName = product.Categories?.CategoriesName ?? "",
+                CategoriesName = product.Categories?.Name ?? "",
                 Price = product.Price,
                 Discount = product.Discount ?? "",
                 Description = product.Description ?? "",
                 Quantity = product.Quantity,
                 ImageUrl = product.ImageUrl ?? "",
                 CreatedAt = product.CreatedAt,
-                UpdatedAt = product.UpdatedAt ?? DateTime.MinValue
+                
             };
         }
 
@@ -172,17 +202,17 @@ namespace Web_Book_BE.Services
                 .Where(p => p.IsDeleted != true)
                 .Select(product => new ProductResponseDTO
                 {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName ?? "",
+                    Product_Id = product.Product_Id,
+                    Name = product.Name ?? "",
                     AuthorName = product.Author.AuthorName ?? "",
-                    CategoriesName = product.Categories.CategoriesName ?? "",
+                    CategoriesName = product.Categories.Name ?? "",
                     Price = product.Price,
                     Discount = product.Discount ?? "",
                     Description = product.Description ?? "",
                     Quantity = product.Quantity,
                     ImageUrl = product.ImageUrl ?? "",
                     CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt ?? DateTime.MinValue
+          
                 })
                 .ToListAsync();
         }
@@ -197,7 +227,7 @@ namespace Web_Book_BE.Services
             if (!string.IsNullOrEmpty(dto.Keyword))
             {
                 query = query.Where(p =>
-                    (p.ProductName ?? "").Contains(dto.Keyword) ||
+                    (p.Name ?? "").Contains(dto.Keyword) ||
                     (p.Description ?? "").Contains(dto.Keyword));
             }
 
@@ -222,17 +252,17 @@ namespace Web_Book_BE.Services
             return await query
                 .Select(product => new ProductResponseDTO
                 {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName ?? "",
+                    Product_Id = product.Product_Id,
+                    Name = product.Name ?? "",
                     AuthorName = product.Author.AuthorName ?? "",
-                    CategoriesName = product.Categories.CategoriesName ?? "",
+                    CategoriesName = product.Categories.Name ?? "",
                     Price = product.Price,
                     Discount = product.Discount ?? "",
                     Description = product.Description ?? "",
                     Quantity = product.Quantity,
                     ImageUrl = product.ImageUrl ?? "",
                     CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt ?? DateTime.MinValue
+              
                 })
                 .ToListAsync();
         }
@@ -246,20 +276,20 @@ namespace Web_Book_BE.Services
                 .Include(p => p.Author)
                 .Include(p => p.Categories)
                 .Where(p => p.IsDeleted != true &&
-                            (p.ProductName ?? "").Contains(keyword))
+                            (p.Name ?? "").Contains(keyword))
                 .Select(product => new ProductResponseDTO
                 {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName ?? "",
+                    Product_Id = product.Product_Id,
+                    Name = product.Name ?? "",
                     AuthorName = product.Author != null ? product.Author.AuthorName : "",
-                    CategoriesName = product.Categories != null ? product.Categories.CategoriesName : "",
+                    CategoriesName = product.Categories != null ? product.Categories.Name : "",
                     Price = product.Price,
                     Discount = product.Discount ?? "",
                     Description = product.Description ?? "",
                     Quantity = product.Quantity,
                     ImageUrl = product.ImageUrl ?? "",
                     CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt ?? DateTime.MinValue
+                
                 })
                 .ToListAsync();
         }

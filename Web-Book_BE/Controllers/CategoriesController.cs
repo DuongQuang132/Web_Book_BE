@@ -9,7 +9,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("categories")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -71,3 +71,6 @@ namespace Web_Book_BE.Controllers
         }
     }
 }
+
+
+

@@ -2,47 +2,52 @@
 using Web_Book_BE.DTO;
 using Web_Book_BE.Services.Interfaces;
 
-public class PaymentHistoryController : ControllerBase
+namespace Web_Book_BE.Controllers
 {
-    private readonly IPaymentHistoryService _paymentHistoryService;
-
-    public PaymentHistoryController(IPaymentHistoryService paymentHistoryService)
+    [ApiController]
+    [Route("paymenthistory")]
+    public class PaymentHistoryController : ControllerBase
     {
-        _paymentHistoryService = paymentHistoryService;
-    }
+        private readonly IPaymentHistoryService _paymentHistoryService;
 
-    [HttpPost]
-    public IActionResult CreatePaymentHistory([FromBody] PaymentHistoryCreateDTO dto)
-    {
-        try
+        public PaymentHistoryController(IPaymentHistoryService paymentHistoryService)
         {
-            var result = _paymentHistoryService.CreatePaymentHistory(dto);
-            return Ok(result);
+            _paymentHistoryService = paymentHistoryService;
         }
-        catch (ArgumentException ex)
+
+        [HttpPost]
+        public IActionResult CreatePaymentHistory([FromBody] PaymentHistoryCreateDTO dto)
         {
-            return BadRequest(ex.Message);
+            try
+            {
+                var result = _paymentHistoryService.CreatePaymentHistory(dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-    }
 
-    [HttpGet("payment/{paymentId}")]
-    public IActionResult GetHistoryByPayment(string paymentId)
-    {
-        var histories = _paymentHistoryService.GetHistoryByPayment(paymentId);
-        return Ok(histories);
-    }
+        [HttpGet("payment/{paymentId}")]
+        public IActionResult GetHistoryByPayment(string paymentId)
+        {
+            var histories = _paymentHistoryService.GetHistoryByPayment(paymentId);
+            return Ok(histories);
+        }
 
-    [HttpPost("filter")]
-    public IActionResult FilterHistoryByDate([FromBody] PaymentHistoryFilterDTO dto)
-    {
-        var histories = _paymentHistoryService.FilterHistoryByDate(dto);
-        return Ok(histories);
-    }
+        [HttpPost("filter")]
+        public IActionResult FilterHistoryByDate([FromBody] PaymentHistoryFilterDTO dto)
+        {
+            var histories = _paymentHistoryService.FilterHistoryByDate(dto);
+            return Ok(histories);
+        }
 
-    [HttpGet]
-    public IActionResult GetAllPaymentHistories()
-    {
-        var histories = _paymentHistoryService.GetAllPaymentHistories();
-        return Ok(histories);
+        [HttpGet]
+        public IActionResult GetAllPaymentHistories()
+        {
+            var histories = _paymentHistoryService.GetAllPaymentHistories();
+            return Ok(histories);
+        }
     }
 }

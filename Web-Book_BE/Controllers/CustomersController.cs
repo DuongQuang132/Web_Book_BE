@@ -8,7 +8,7 @@ using Web_Book_BE.Services.Interfaces;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("custormer")]
     public class CustomersController : ControllerBase
     {
         private readonly ICustomerService _customerService;
@@ -19,7 +19,7 @@ namespace Web_Book_BE.Controllers
         }
 
         // Tạo mới khách hàng
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateCustomer([FromBody] CustomerCreateDTO dto)
         {
             try

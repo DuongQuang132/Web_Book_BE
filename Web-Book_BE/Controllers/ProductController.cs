@@ -8,7 +8,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("product")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -74,8 +74,15 @@ namespace Web_Book_BE.Controllers
             return Ok(message);
         }
 
-        //Lấy sản phẩm theo ID
-        [HttpGet("{id}")]
+        [HttpGet("category/{categoryId}")]
+        public async Task<IActionResult> GetProductByCategoryId(string categoryId)
+        {
+            var product = await _productService.GetProductByCategoryId(categoryId);
+
+            return Ok(product);
+        }
+
+        [HttpGet("id/{id}")]
         public async Task<IActionResult> GetProductById(string id)
         {
             var product = await _productService.GetProductByIdAsync(id);

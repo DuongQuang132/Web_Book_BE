@@ -9,7 +9,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("author")]
     public class AuthorsController : ControllerBase
     {
         private readonly IAuthorService _authorItemService;

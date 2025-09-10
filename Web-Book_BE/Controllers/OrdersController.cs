@@ -5,7 +5,7 @@ using Web_Book_BE.Services.Interfaces;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("order")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _service;

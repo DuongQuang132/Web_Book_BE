@@ -5,17 +5,22 @@ using Web_Book_BE.Models;
 using Web_Book_BE.Services;
 using Web_Book_BE.Services.Interfaces;
 using Web_Book_BE.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services to the container
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// DbContext
 builder.Services.AddDbContext<BookStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Cloudinary
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddSingleton(provider =>
@@ -25,11 +30,15 @@ builder.Services.AddSingleton(provider =>
     return new Cloudinary(account);
 });
 builder.Services.AddSingleton<CloudinaryUtil>();
+
+// HttpClient
 builder.Services.AddHttpClient();
+
+// Scoped services
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAuthorService, AuthorsService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
-builder.Services.AddScoped<ICategoryService,  CategoryService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductDetailService, ProductDetailService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -39,10 +48,38 @@ builder.Services.AddScoped<IPaymentHistoryService, PaymentHistoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
 
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["Key"]))
+        };
+    });
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -51,11 +88,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Phục vụ static files từ thư mục www
+// Serve static files
 app.UseStaticFiles();
 
+// Enable CORS
+app.UseCors("AllowReactApp");
+
+// ✅ Authentication & Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
+// Map controllers
 app.MapControllers();
 
 app.Run();

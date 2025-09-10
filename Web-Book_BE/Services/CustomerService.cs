@@ -41,7 +41,7 @@ namespace Web_Book_BE.Services
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return "Khách hàng đã được tạo thành công";
+            return customer.CustomerId;
         }
 
         public async Task<string> UpdateCustomerAsync(CustomerUpdateDTO dto)

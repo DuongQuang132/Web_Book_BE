@@ -11,5 +11,7 @@ namespace Web_Book_BE.Services.Interfaces
         Task<List<ProductResponseDTO>> GetProductsByNameAsync(string keyword);
         Task<List<ProductResponseDTO>> GetAllProductsAsync();
         Task<List<ProductResponseDTO>> FilterProductsAsync(ProductFilterDTO dto);
+        Task<List<ProductResponseDTO>> GetProductByCategoryId(string categoryId);
+      
     }
 }

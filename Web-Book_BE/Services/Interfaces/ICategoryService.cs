@@ -10,6 +10,7 @@ namespace Web_Book_BE.Services.Interfaces
         Task<string> DeleteCategoryAsync(string id);
         Task<CategoryResponseDTO?> GetCategoryByNameAsync(string id);
         Task<List<CategoryResponseDTO>> GetAllCategoriesAsync();
+     
     }
 }
 

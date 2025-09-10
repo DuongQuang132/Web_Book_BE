@@ -27,6 +27,13 @@
     }
 
     // Dùng để trả về dữ liệu người dùng cho client
+    public class UserLoginResponseDTO
+    {
+        public string UserId { get; set; }
+        public string Username { get; set; }
+        public string Role { get; set; }
+        public string Token { get; set; } = string.Empty;
+    }
     public class UserResponseDTO
     {
         public string UserId { get; set; }
@@ -36,6 +43,8 @@
         public bool? IsDeleted { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public string Password { get; set; }
     }
 
     // Dùng để xóa mềm người dùng

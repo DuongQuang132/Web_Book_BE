@@ -85,14 +85,14 @@ public partial class BookStoreDbContext : DbContext
 
         modelBuilder.Entity<Categories>(entity =>
         {
-            entity.HasKey(e => e.CategoriesId).HasName("PK__Categori__EE560CFD38E95A3B");
+            entity.HasKey(e => e.Categories_ID).HasName("PK__Categori__EE560CFD38E95A3B");
 
-            entity.Property(e => e.CategoriesId)
+            entity.Property(e => e.Categories_ID)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Categories_ID");
             entity.Property(e => e.Description).HasColumnType("text");
-            entity.Property(e => e.CategoriesName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
         });
@@ -222,9 +222,9 @@ public partial class BookStoreDbContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PK__Products__9834FB9AD6753872");
+            entity.HasKey(e => e.Product_Id).HasName("PK__Products__9834FB9AD6753872");
 
-            entity.Property(e => e.ProductId)
+            entity.Property(e => e.Product_Id)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Product_ID");
@@ -245,11 +245,11 @@ public partial class BookStoreDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
-            entity.Property(e => e.ProductName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(150)
                 .IsUnicode(false);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+     
 
             entity.HasOne(d => d.Author).WithMany(p => p.Products)
                 .HasForeignKey(d => d.AuthorId)

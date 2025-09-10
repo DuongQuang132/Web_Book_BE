@@ -5,16 +5,23 @@ using Web_Book_BE.Services.Interfaces;
 using Web_Book_BE.Utils;
 using static System.Net.Mime.MediaTypeNames;
 using BCrypt.Net;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Web_Book_BE.Services
 {
     public class UserService : IUserService
     {
         private readonly BookStoreDbContext _context;
-
-        public UserService(BookStoreDbContext context)
+   
+     private readonly IConfiguration _configuration;
+        //Đăng Ký
+        public UserService(BookStoreDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
         public async Task<string> CreateUserAsync(UserRegisterDTO dto)
         {
@@ -42,28 +49,71 @@ namespace Web_Book_BE.Services
                 ? "Đăng ký thành công"
                 : "Đăng ký thất bại";
         }
-        public async Task<UserResponseDTO?> LoginAsync(UserLoginDTO dto)
+        public async Task<ApiResponse<UserLoginResponseDTO>> LoginAsync(UserLoginDTO dto)
         {
+            // 🔎 Tìm user theo Username
             var user = await _context.Users
                 .FirstOrDefaultAsync(u =>
-                u.Username == dto.Username &&
-                u.Password == dto.Password &&
-                u.IsDeleted == false);
+                    u.Username == dto.Username &&
+                    u.IsDeleted == false);
 
             if (user == null)
-                return null;
-
-            return new UserResponseDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Role = user.Role ?? "",
-                CustomerId = user.CustomerId ?? "",
-                IsDeleted = user.IsDeleted,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
+                return new ApiResponse<UserLoginResponseDTO>
+                {
+                    Status = 400,
+                    Message = "Sai tài khoản hoặc mật khẩu",
+                    Data = null
+                };
+            }
+
+            // ⚠️ Nếu bạn đang lưu password dạng hash thì thay bằng verify hash
+            if (user.Password != dto.Password)
+            {
+                return new ApiResponse<UserLoginResponseDTO>
+                {
+                    Status = 400,
+                    Message = "Sai tài khoản hoặc mật khẩu",
+                    Data = null
+                };
+            }
+
+            // 🔑 Tạo JWT Token
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Role ?? "")
+        }),
+                Expires = DateTime.UtcNow.AddHours(2),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            // 📦 Trả về DTO có token trong ApiResponse
+            return new ApiResponse<UserLoginResponseDTO>
+            {
+                Status = 200,
+                Message = "Login thành công",
+                Data = new UserLoginResponseDTO
+                {
+                    UserId = user.UserId,
+                    Username = user.Username,
+                    Role = user.Role ?? "",
+                    Token = tokenString
+                }
             };
         }
+
         public async Task<string> UpdateUserAsync(UserUpdateDTO dto)
         {
             var user = await _context.Users
@@ -119,6 +169,7 @@ namespace Web_Book_BE.Services
                 {
                     UserId = user.UserId,
                     Username = user.Username,
+                    Password = user.Password,
                     Role = user.Role ?? "",
                     CustomerId = user.CustomerId ?? "",
                     IsDeleted = user.IsDeleted,

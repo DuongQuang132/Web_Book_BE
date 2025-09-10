@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks.Dataflow;
 using Web_Book_BE.DTO;
 using Web_Book_BE.Models;
 using Web_Book_BE.Services.Interfaces;
@@ -7,7 +8,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("user")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -21,9 +22,7 @@ namespace Web_Book_BE.Controllers
         {
             var message = await _userService.CreateUserAsync(dto);
 
-            return message == "Đăng ký thành công"
-                ? Ok(message)
-                : BadRequest(message);
+            return Ok(message);
         }
 
         //Đăng nhập
@@ -82,7 +81,7 @@ namespace Web_Book_BE.Controllers
             {
                 "Người dùng đã được xóa mềm" => Ok(message),
                 "Không tìm thấy người dùng" => NotFound(message),
-                _ => StatusCode(500, message)
+                _=> StatusCode(500, message)
             };
         }
 

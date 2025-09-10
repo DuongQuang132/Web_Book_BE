@@ -2,82 +2,87 @@
 using Web_Book_BE.DTO;
 using Web_Book_BE.Services.Interfaces;
 
-public class PaymentsController : ControllerBase
+namespace Web_Book_BE.Controllers
 {
-    private readonly IPaymentService _paymentService;
-
-    public PaymentsController(IPaymentService paymentService)
+    [ApiController]
+    [Route(" payment")]
+    public class PaymentsController : ControllerBase
     {
-        _paymentService = paymentService;
-    }
+        private readonly IPaymentService _paymentService;
 
-    [HttpPost]
-    public IActionResult CreatePayment([FromBody] PaymentCreateDTO dto)
-    {
-        try
+        public PaymentsController(IPaymentService paymentService)
         {
-            var result = _paymentService.CreatePayment(dto);
-            return Ok(result);
+            _paymentService = paymentService;
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpPut]
-    public IActionResult UpdatePayment([FromBody] PaymentUpdateDTO dto)
-    {
-        try
+        [HttpPost]
+        public IActionResult CreatePayment([FromBody] PaymentCreateDTO dto)
         {
-            var result = _paymentService.UpdatePayment(dto);
-            return Ok(result);
+            try
+            {
+                var result = _paymentService.CreatePayment(dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
 
-    [HttpPatch("status")]
-    public IActionResult UpdatePaymentStatus([FromBody] PaymentStatusUpdateDTO dto)
-    {
-        try
+        [HttpPut]
+        public IActionResult UpdatePayment([FromBody] PaymentUpdateDTO dto)
         {
-            var result = _paymentService.UpdatePaymentStatus(dto);
-            return Ok(result);
+            try
+            {
+                var result = _paymentService.UpdatePayment(dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
 
-    [HttpDelete("{id}")]
-    public IActionResult DeletePayment(string id)
-    {
-        try
+        [HttpPatch("status")]
+        public IActionResult UpdatePaymentStatus([FromBody] PaymentStatusUpdateDTO dto)
         {
-            var result = _paymentService.DeletePayment(id);
-            return Ok(result);
+            try
+            {
+                var result = _paymentService.UpdatePaymentStatus(dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-        catch (KeyNotFoundException ex)
+
+        [HttpDelete("{id}")]
+        public IActionResult DeletePayment(string id)
         {
-            return NotFound(ex.Message);
+            try
+            {
+                var result = _paymentService.DeletePayment(id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-    }
 
-    [HttpGet("order/{ordersId}")]
-    public IActionResult GetPaymentsByOrder(string ordersId)
-    {
-        var payments = _paymentService.GetPaymentsByOrder(ordersId);
-        return Ok(payments);
-    }
+        [HttpGet("order/{ordersId}")]
+        public IActionResult GetPaymentsByOrder(string ordersId)
+        {
+            var payments = _paymentService.GetPaymentsByOrder(ordersId);
+            return Ok(payments);
+        }
 
-    [HttpGet]
-    public IActionResult GetAllPayments()
-    {
-        var payments = _paymentService.GetAllPayments();
-        return Ok(payments);
+        [HttpGet]
+        public IActionResult GetAllPayments()
+        {
+            var payments = _paymentService.GetAllPayments();
+            return Ok(payments);
+        }
     }
 }

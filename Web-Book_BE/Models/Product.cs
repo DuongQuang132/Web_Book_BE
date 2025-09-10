@@ -5,9 +5,9 @@ namespace Web_Book_BE.Models;
 
 public partial class Product
 {
-    public string ProductId { get; set; } = null!;
+    public string Product_Id { get; set; } = null!;
 
-    public string? ProductName { get; set; }
+    public string? Name { get; set; }
 
     public string? AuthorId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Product
 
     public DateTime? CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
+
 
     public virtual Authors? Author { get; set; }
 
@@ -36,4 +36,5 @@ public partial class Product
     public virtual Categories? Categories { get; set; }
 
     public virtual ICollection<ProductDetails> ProductDetails { get; set; } = new List<ProductDetails>();
+
 }

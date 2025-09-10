@@ -6,7 +6,7 @@ namespace Web_Book_BE.Services.Interfaces
     {
         Task<string> CreateProductDetailAsync(ProductDetailCreateDTO dto);
         Task<string> UpdateProductDetailAsync(ProductDetailUpdateDTO dto);
-        Task<ProductDetailResponseDTO?> GetDetailByProductAsync(string productId);
+        Task<ProductDetailByProductDTO?> GetDetailByProductAsync(string productId);
         Task<List<ProductDetailResponseDTO>> GetAllProductDetailsAsync();
     }
 }

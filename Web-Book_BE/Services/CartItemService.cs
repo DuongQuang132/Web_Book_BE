@@ -16,6 +16,8 @@ namespace Web_Book_BE.Services
             _context = context;
         }
 
+      
+
         public async Task<bool> AddToCartAsync(CartItemCreateDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.UserId) || string.IsNullOrWhiteSpace(dto.ProductId) || dto.Quantity <= 0)
@@ -54,10 +56,10 @@ namespace Web_Book_BE.Services
                     CartItemId = ci.CartItemId,
                     UserId = ci.UserId!,
                     ProductId = ci.ProductId!,
-                    ProductName = ci.Product!.ProductName,
+                    ProductName = ci.Product!.Name,
                     ImageUrl = ci.Product.ImageUrl,
-                    Price = ci.Product.Price,
                     Quantity = ci.Quantity ?? 0,
+                    Price = ci.Product.Price * ci.Quantity,
                     TotalPrice = (ci.Product.Price ?? 0) * (ci.Quantity ?? 0)
                 })
                 .ToListAsync();

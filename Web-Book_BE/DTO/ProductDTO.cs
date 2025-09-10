@@ -19,8 +19,8 @@ namespace Web_Book_BE.DTO
     // Dùng khi cập nhật sản phẩm
     public class ProductUpdateDTO
     {
-        public string ProductId { get; set; } // Để xác định sản phẩm cần cập nhật
-        public string ProductName { get; set; }
+        public string Product_Id { get; set; } // Để xác định sản phẩm cần cập nhật
+        public string Name { get; set; }
         public string AuthorName { get; set; }
         public string CategoriesName { get; set; }
         public decimal? Price { get; set; }
@@ -34,17 +34,17 @@ namespace Web_Book_BE.DTO
     // Dùng để trả về dữ liệu sản phẩm cho client
     public class ProductResponseDTO
     {
-        public string ProductId { get; set; }
-        public string ProductName { get; set; }
+        public string Product_Id { get; set; }
+        public string Name { get; set; }
         public string AuthorName { get; set; }
         public string CategoriesName { get; set; }
         public decimal? Price { get; set; }
         public string? Discount { get; set; }
         public string Description { get; set; }
-        public int? Quantity { get; set; }
         public string ImageUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public int? Quantity { get; set; }
+
     }
 
     // Dùng để tìm kiếm hoặc lọc sản phẩm

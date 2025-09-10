@@ -12,7 +12,7 @@ public class CategoryService : ICategoryService
     {
         _context = context;
     }
-
+  
     public async Task<string> CreateCategoryAsync(CategoryCreateDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.CategoriesName))
@@ -20,8 +20,8 @@ public class CategoryService : ICategoryService
 
         var category = new Categories
         {
-            CategoriesId = "CAT" + IdGenerator.RandomDigits(),
-            CategoriesName = dto.CategoriesName,
+            Categories_ID = "CAT" + IdGenerator.RandomDigits(),
+            Name = dto.CategoriesName,
             Description = dto.Description
         };
 
@@ -33,12 +33,12 @@ public class CategoryService : ICategoryService
     public async Task<string> UpdateCategoryAsync(CategoryUpdateDTO dto)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.CategoriesId == dto.CategoriesId);
+            .FirstOrDefaultAsync(c => c.Categories_ID == dto.CategoriesId);
 
         if (category == null)
             return "Không tìm thấy danh mục";
 
-        category.CategoriesName = dto.CategoriesName;
+        category.Name = dto.CategoriesName;
         category.Description = dto.Description;
 
         await _context.SaveChangesAsync();
@@ -47,7 +47,7 @@ public class CategoryService : ICategoryService
     public async Task<string> DeleteCategoryAsync(string id)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.CategoriesId == id);
+            .FirstOrDefaultAsync(c => c.Categories_ID == id);
 
         if (category == null)
             return "Không tìm thấy danh mục để xóa";
@@ -60,15 +60,15 @@ public class CategoryService : ICategoryService
     public async Task<CategoryResponseDTO?> GetCategoryByNameAsync(string name)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.CategoriesName.ToLower() == name.ToLower());
+            .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
 
         if (category == null)
             return null;
 
         return new CategoryResponseDTO
         {
-            CategoriesId = category.CategoriesId,
-            CategoriesName = category.CategoriesName,
+            CategoriesId = category.Categories_ID,
+            CategoriesName = category.Name,
             Description = category.Description
         };
     }
@@ -77,8 +77,8 @@ public class CategoryService : ICategoryService
         return await _context.Categories
             .Select(c => new CategoryResponseDTO
             {
-                CategoriesId = c.CategoriesId,
-                CategoriesName = c.CategoriesName,
+                CategoriesId = c.Categories_ID,
+                CategoriesName = c.Name,
                 Description = c.Description
             })
             .ToListAsync();

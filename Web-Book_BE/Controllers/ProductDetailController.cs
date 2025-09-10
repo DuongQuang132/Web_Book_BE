@@ -8,7 +8,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("productdetail")]
     public class ProductDetailController : ControllerBase
     {
         private readonly IProductDetailService _productDetailService;
@@ -45,7 +45,7 @@ namespace Web_Book_BE.Controllers
         {
             var response = await _productDetailService.GetDetailByProductAsync(productId);
 
-            return response != null
+            return response != null 
                 ? Ok(response)
                 : NotFound("Không tìm thấy thông tin chi tiết sản phẩm");
         }

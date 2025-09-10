@@ -34,6 +34,14 @@
     // Dùng để truy vấn chi tiết theo Product_ID
     public class ProductDetailByProductDTO
     {
+        public string ProductDetailId { get; set; }
         public string ProductId { get; set; }
+        public string Name { get; set; }
+        public string AuthorName { get; set; }
+        public string CategoriesName { get; set; }
+        public decimal? Price { get; set; }
+        public string? Discount { get; set; }
+        public string Description { get; set; }
+        public string ImageUrl { get; set; }    
     }
 }

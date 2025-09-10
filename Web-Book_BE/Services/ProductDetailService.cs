@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CloudinaryDotNet.Actions;
+using Microsoft.EntityFrameworkCore;
 using Web_Book_BE.DTO;
 using Web_Book_BE.Models;
 using Web_Book_BE.Services.Interfaces;
@@ -60,24 +61,26 @@ namespace Web_Book_BE.Services
                 ? "Thông tin chi tiết sản phẩm đã được cập nhật"
                 : "Cập nhật thất bại";
         }
-        public async Task<ProductDetailResponseDTO?> GetDetailByProductAsync(string productId)
+        public async Task<ProductDetailByProductDTO> GetDetailByProductAsync(string productId)
         {
-            var detail = await _context.ProductDetails
+            var productDetail = await _context.ProductDetails
+                .Include(d => d.Product)
                 .FirstOrDefaultAsync(d => d.ProductId == productId);
 
-            if (detail == null)
+            if (productDetail == null)
                 return null;
 
-            return new ProductDetailResponseDTO
+            return new ProductDetailByProductDTO
             {
-                ProductDetailId = detail.ProductDetailId,
-                ProductId = detail.ProductId ?? "",
-                Publisher = detail.Publisher ?? "",
-                PublishDate = detail.PublishDate.HasValue
-                    ? detail.PublishDate.Value.ToDateTime(TimeOnly.MinValue)
-                    : null,
-                PageCount = detail.PageCount,
-                Language = detail.Language ?? ""
+                  ProductId =productDetail.ProductId,
+                ProductDetailId = productDetail.ProductDetailId,
+                 Name = productDetail.Product.Name,
+                 AuthorName = productDetail.Product.Author.AuthorName,
+                 CategoriesName = productDetail.Product.Categories.Name,
+                 Price = productDetail.Product.Price,
+                 Discount = productDetail.Product.Discount,
+                 Description = productDetail.Product.Description,
+                 ImageUrl = productDetail.Product.ImageUrl,
             };
         }
         public async Task<List<ProductDetailResponseDTO>> GetAllProductDetailsAsync()

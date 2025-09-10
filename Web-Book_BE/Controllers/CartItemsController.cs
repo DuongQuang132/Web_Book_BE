@@ -9,7 +9,7 @@ using Web_Book_BE.Utils;
 namespace Web_Book_BE.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("cartitem")]
     public class CartItemController : ControllerBase
     {
         private readonly ICartItemService _cartItemService;
