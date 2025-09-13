@@ -101,7 +101,7 @@ namespace Web_Book_BE.Controllers
 
 
         //Lấy tất cả sản phẩm
-        [HttpGet]
+        [HttpGet("getall")]
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productService.GetAllProductsAsync();

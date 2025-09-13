@@ -7,6 +7,7 @@ public partial class Orders
 {
     public string OrdersId { get; set; } = null!;
 
+
     public string? UserId { get; set; }
 
     public decimal? TotalAmount { get; set; }
@@ -24,4 +25,5 @@ public partial class Orders
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual User? User { get; set; }
+
 }

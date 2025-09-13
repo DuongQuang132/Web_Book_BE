@@ -15,7 +15,7 @@ namespace Web_Book_BE.Controllers
             _service = service;
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         public IActionResult CreateOrder([FromBody] OrderCreateDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.UserId) || dto.TotalAmount == null)
@@ -32,7 +32,7 @@ namespace Web_Book_BE.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut("update")]
         public IActionResult UpdateOrder([FromBody] OrderUpdateDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.OrdersId))

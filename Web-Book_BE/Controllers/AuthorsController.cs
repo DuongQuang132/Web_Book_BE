@@ -43,5 +43,16 @@ namespace Web_Book_BE.Controllers
             var authors = await _authorItemService.GetAllAuthorsAsync();
             return Ok(authors);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAuthor(string id)
+        {
+            var message = await _authorItemService.RemoveAuthor(id);
+
+         
+            return message == "Tác giả đã được xóa" || message == "Danh mục đã được xóa"
+                ? Ok(message)
+                : NotFound(message);
+        }
     }
 }

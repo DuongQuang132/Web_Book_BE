@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using CloudinaryDotNet.Core;
 
 namespace Web_Book_BE.Services
 {
@@ -53,6 +54,7 @@ namespace Web_Book_BE.Services
         {
             // 🔎 Tìm user theo Username
             var user = await _context.Users
+                .Include(u => u.Customer)
                 .FirstOrDefaultAsync(u =>
                     u.Username == dto.Username &&
                     u.IsDeleted == false);
@@ -109,6 +111,7 @@ namespace Web_Book_BE.Services
                     UserId = user.UserId,
                     Username = user.Username,
                     Role = user.Role ?? "",
+                    Address = user.Customer.Address,
                     Token = tokenString
                 }
             };

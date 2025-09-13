@@ -62,6 +62,22 @@ namespace Web_Book_BE.Services
 
             return new OkObjectResult(dto);
         }
+
+
+        public async Task<string> RemoveAuthor(string id)
+        {
+            var author = await _context.Authors
+                .FirstOrDefaultAsync(c => c.AuthorId == id);
+
+            if (author == null)
+                return "Không tìm thấy tác giả để xóa"; // Fixed: Changed from "danh mục" to "tác giả"
+
+            _context.Authors.Remove(author);
+            await _context.SaveChangesAsync();
+
+            return "Tác giả đã được xóa";
+        }
+
         public async Task<IActionResult> UpdateAuthorAsync(AuthorUpdateDTO dto)
         {
             var author = await _context.Authors

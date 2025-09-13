@@ -29,9 +29,11 @@
     // Dùng để trả về dữ liệu người dùng cho client
     public class UserLoginResponseDTO
     {
+        
         public string UserId { get; set; }
         public string Username { get; set; }
         public string Role { get; set; }
+        public string Address { get; set; }
         public string Token { get; set; } = string.Empty;
     }
     public class UserResponseDTO

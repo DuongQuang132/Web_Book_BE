@@ -13,9 +13,8 @@
     public class OrderUpdateDTO
     {
         public string OrdersId { get; set; }
-        public decimal? TotalAmount { get; set; }
         public string Status { get; set; }
-        public string ShippingAddress { get; set; }
+ 
     }
 
     // Dùng để cập nhật trạng thái đơn hàng riêng biệt

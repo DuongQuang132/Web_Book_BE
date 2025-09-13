@@ -9,7 +9,7 @@ namespace Web_Book_BE.Services.Interfaces
         Task<List<CartItemResponseDTO>> GetCartByUserAsync(string userId);
         Task<bool> AddToCartAsync(CartItemCreateDTO dto);
         Task<string> UpdateCartItemAsync(CartItemUpdateDTO dto);
-        Task<string> RemoveFromCartAsync(CartItemDeleteDTO dto);
+        Task<string> RemoveFromCartAsync(string cartItemId);
 
     }
 }

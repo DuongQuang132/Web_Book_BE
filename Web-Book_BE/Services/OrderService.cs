@@ -38,9 +38,9 @@ namespace Web_Book_BE.Services
             var order = _context.Orders.FirstOrDefault(o => o.OrdersId == dto.OrdersId)
                         ?? throw new Exception("Không tìm thấy đơn hàng");
 
-            order.TotalAmount = dto.TotalAmount;
+ 
             order.Status = dto.Status;
-            order.ShippingAddress = dto.ShippingAddress;
+  
             order.UpdatedAt = DateTime.UtcNow;
 
             _context.SaveChanges();

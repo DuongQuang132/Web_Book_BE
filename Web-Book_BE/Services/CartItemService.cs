@@ -67,22 +67,19 @@ namespace Web_Book_BE.Services
             return cartItems;
         }
 
-        public async Task<string> RemoveFromCartAsync(CartItemDeleteDTO dto)
-        {
-            if (string.IsNullOrWhiteSpace(dto.CartItemId))
-                return "Thông tin không hợp lệ";
+public async Task<string> RemoveFromCartAsync(string cartItemId)
+{
+    var item = await _context.CartItems
+        .FirstOrDefaultAsync(c => c.CartItemId == cartItemId);
 
-            var item = await _context.CartItems
-                .FirstOrDefaultAsync(c => c.CartItemId == dto.CartItemId);
+    if (item == null)
+        return "Không tìm thấy sản phẩm để xóa";
 
-            if (item == null)
-                return "Không tìm thấy sản phẩm để xóa";
+    _context.CartItems.Remove(item);
+    await _context.SaveChangesAsync();
 
-            _context.CartItems.Remove(item);
-            await _context.SaveChangesAsync();
-
-            return "Đã xóa sản phẩm khỏi giỏ hàng";
-        }
+    return "Đã xóa sản phẩm khỏi giỏ hàng";
+}
 
         public async Task<string> UpdateCartItemAsync(CartItemUpdateDTO dto)
         {

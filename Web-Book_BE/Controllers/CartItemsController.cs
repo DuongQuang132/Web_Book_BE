@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Web_Book_BE.DTO;
 using Web_Book_BE.Models;
+using Web_Book_BE.Services;
 using Web_Book_BE.Services.Interfaces;
 using Web_Book_BE.Utils;
 
@@ -18,12 +19,14 @@ namespace Web_Book_BE.Controllers
             _cartItemService = cartItemService;
         }
 
-        [HttpPost("get-by-user")]
-        public async Task<IActionResult> GetCartByUser([FromBody] CartItemByUserDTO dto)
+        [HttpGet("get-by-user/{userId}")]
+        public async Task<IActionResult> GetCartByUser( string userId)
         {
-            var cart = await _cartItemService.GetCartByUserAsync(dto.UserId);
+            var cart = await _cartItemService.GetCartByUserAsync(userId);
             return Ok(cart);
         }
+
+
 
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartItemCreateDTO dto)
@@ -42,14 +45,17 @@ namespace Web_Book_BE.Controllers
                 : BadRequest(message);
         }
 
-        [HttpDelete("remove")]
-        public async Task<IActionResult> RemoveFromCart([FromBody] CartItemDeleteDTO dto)
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> RemoveFromCart(string id)
         {
-            var message = await _cartItemService.RemoveFromCartAsync(dto);
+            var message = await _cartItemService.RemoveFromCartAsync(id);
 
             return message == "Đã xóa sản phẩm khỏi giỏ hàng"
                 ? Ok(message)
                 : BadRequest(message);
         }
+
+
     }
 }
